@@ -19,46 +19,50 @@ export const CATEGORIES = [
     ],
   },
   {
-    label: "En Que Pais?",
-    value: "En_Que_Pais" as const,
+    label: "Pais",
+    value: "Pais" as const,
     features: [
       {
         name: [
           {
-            COLOMBIA: "Colombia",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "En Que Ciudad?",
-    value: "En_Que_Ciudad" as const,
-    features: [
-      {
-        name: [
-          {
-            Bogotá: "Bogotá",
-            Cali: "Cali",
-            Medellin: "Medellín",
-            Barranquilla: "Barranquilla",
-
-            Cartagena: "Cartagena",
-            Pasto: "Pasto",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "En Que Localidad?",
-    value: "En_Que_Localidad" as const,
-    features: [
-      {
-        name: [
-          {
-            Kennedy: "Kennedy",
-            Suba: "Suba",
+            COLOMBIA: {
+              departamentos: {
+                AMAZONAS: {
+                  ciudades: {
+                    LETICIA: {
+                      localidades: ["Centro", "Sur", "Norte"],
+                    },
+                    PUERTO_SANTANDER: {
+                      localidades: ["Zona 1", "Zona 2"],
+                    },
+                  },
+                },
+                ANTIOQUIA: {
+                  ciudades: {
+                    MEDELLIN: {
+                      localidades: [
+                        "Doce_De_Octubre",
+                        "Castilla",
+                        "Santacruz",
+                        "Popular",
+                        "Robledo",
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+            PERU: {
+              departamentos: {
+                LIMA: {
+                  ciudades: {
+                    LIMA_CIUDAD: {
+                      localidades: ["Miraflores", "San Isidro"],
+                    },
+                  },
+                },
+              },
+            },
           },
         ],
       },
