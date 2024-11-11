@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 type SelectionKeys =
   | "Pais"
@@ -183,57 +185,66 @@ const HierarchicalNav: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-wrap gap-2 p-2">
-      {menuConfig.map(({ id, label }) => {
-        const options = getAvailableOptions(id);
-        const isDisabled = isMenuDisabled(id);
+    <>
+      <div className="flex flex-wrap gap-2 p-2">
+        {menuConfig.map(({ id, label }) => {
+          const options = getAvailableOptions(id);
+          const isDisabled = isMenuDisabled(id);
 
-        return (
-          <div key={id} className="relative">
-            <div className="flex flex-col gap-1">
-              <Button
-                onClick={() => setOpenMenu(openMenu === id ? "" : id)}
-                variant={openMenu === id ? "secondary" : "ghost"}
-                disabled={isDisabled}
-                className="h-8 px-2 text-xs min-w-[100px] justify-between"
-                size="sm"
-              >
-                <span>{label}</span>
-                <ChevronDown
-                  className={`h-3 w-3 transition-all ${
-                    openMenu === id ? "rotate-180" : ""
-                  }`}
-                />
-              </Button>
+          return (
+            <div key={id} className="relative">
+              <div className="flex flex-col gap-1">
+                <Button
+                  onClick={() => setOpenMenu(openMenu === id ? "" : id)}
+                  variant={openMenu === id ? "secondary" : "ghost"}
+                  disabled={isDisabled}
+                  className="h-8 px-2 text-xs min-w-[100px] justify-between"
+                  size="sm"
+                >
+                  <span>{label}</span>
+                  <ChevronDown
+                    className={`h-3 w-3 transition-all ${
+                      openMenu === id ? "rotate-180" : ""
+                    }`}
+                  />
+                </Button>
 
-              {selections[id] && (
-                <div className="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-center truncate max-w-[100px]">
-                  {selections[id]}
+                {selections[id] && (
+                  <div className="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-center truncate max-w-[100px]">
+                    {selections[id]}
+                  </div>
+                )}
+              </div>
+
+              {openMenu === id && options.length > 0 && (
+                <div className="absolute z-50 w-[160px] bg-white rounded-md shadow-lg mt-1 border">
+                  <div className="max-h-[250px] overflow-y-auto">
+                    <div className="p-1 space-y-0.5">
+                      {options.map((option) => (
+                        <div
+                          key={option}
+                          className="px-2 py-1.5 text-xs hover:bg-gray-100 cursor-pointer rounded-sm transition-colors"
+                          onClick={() => handleSelect(id, option)}
+                        >
+                          {option}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
+          );
+        })}
 
-            {openMenu === id && options.length > 0 && (
-              <div className="absolute z-50 w-[160px] bg-white rounded-md shadow-lg mt-1 border">
-                <div className="max-h-[250px] overflow-y-auto">
-                  <div className="p-1 space-y-0.5">
-                    {options.map((option) => (
-                      <div
-                        key={option}
-                        className="px-2 py-1.5 text-xs hover:bg-gray-100 cursor-pointer rounded-sm transition-colors"
-                        onClick={() => handleSelect(id, option)}
-                      >
-                        {option}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+        {/* Botón adicional al lado de "Localidad" */}
+        <div className="flex flex-col sm:flex-row  w-1 h-1">
+          <Link href="/ciudades" className={buttonVariants()}>
+            Buscar
+          </Link>
+        </div>
+      </div>
+    </>
   );
 };
 
