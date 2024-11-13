@@ -7,8 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { RegisterInput, registerSchema } from "@/lib/validations/auth";
-import { SignUp } from "@/lib/auth";
+import {
+  RegisterInput,
+  registerSchema,
+} from "../../../../../backend/src/controllers/auth.schemas";
+import { signUp } from "@/lib/auth";
 import { z } from "zod";
 
 const Page = () => {
@@ -29,7 +32,7 @@ const Page = () => {
       // validamos con zod
       registerSchema.parse(formData);
       setIsLoading(true);
-      const response = await SignUp(formData);
+      const response = await signUp(formData);
 
       // Si el registro es exitoso, el backend devuelve los datos del usuario
       console.log("Usuario registrado:", response);
@@ -134,7 +137,7 @@ const Page = () => {
                       "border border-gray-400 rounded-md",
                       errors && "border-red-500"
                     )}
-                    type="confirmPassword"
+                    type="password"
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,

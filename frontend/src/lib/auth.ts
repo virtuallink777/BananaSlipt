@@ -1,23 +1,35 @@
-import { RegisterInput } from "./validations/auth";
+import axios, { AxiosResponse } from "axios";
+import {
+  RegisterInput,
+  registerSchema,
+} from "../../../backend/src/controllers/auth.schemas";
+import { z } from "zod";
 
-export async function SignUp(data: RegisterInput) {
+interface RegisterResponse {
+  user: string;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export const signUp = async (
+  data: RegisterInput
+): Promise<AxiosResponse<RegisterResponse>> => {
   try {
-    const response = await fetch("http://localhost:4004/register", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(data),
-      credentials: "include",
-    });
-    const responseData = await response.json();
+    // validar los datos con zod
+    registerSchema.parse(data);
 
-    if (!response) {
-      throw new Error(responseData.message || "Error en el registro");
-    }
-
-    return responseData;
+    // enviar los datos al backend
+    const response = await axios.post(
+      "http://localhost:4004/auth/register",
+      data
+    );
+    console.log(response.data);
+    return response;
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      // maneja los errores de validacion de zod
+      throw error;
+    }
     throw error;
   }
-}
+};

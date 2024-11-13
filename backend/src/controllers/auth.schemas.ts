@@ -25,3 +25,5 @@ export const resetPasswordSchema = z.object({
   password: passwordSchema,
   verificationCode: verificationCodeSchema,
 });
+
+export type RegisterInput = z.infer<typeof registerSchema>;
