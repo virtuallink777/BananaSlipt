@@ -25,9 +25,12 @@ import {
   signToken,
   verifyToken,
 } from "../utils/jwt";
-import { sendVerificationEmail } from "../services/email.service";
-import SendmailTransport from "nodemailer/lib/sendmail-transport";
-import { getPasswordResetTemplate } from "../utils/emailTemplates";
+import { sendVerificationEmail } from "../utils/sendVerificationEmail";
+
+import {
+  getPasswordResetTemplate,
+  getVerifyEmailTemplate,
+} from "../utils/emailTemplates";
 import { transport } from "../config/nodemailer";
 import { hashValue } from "../utils/bcrypt";
 
@@ -75,13 +78,7 @@ export const createAccount = async (data: createAccountparams) => {
 
     // send verificaction email
 
-    try {
-      await sendVerificationEmail(user, verificationCode);
-      console.log("Email de verificacion enviado exitosamente");
-    } catch (emailError) {
-      console.error("Error al enviar email de verificación:", emailError);
-      // Continuamos con el proceso aunque falle el envío del email
-    }
+    await sendVerificationEmail(user, verificationCode);
 
     // create session
 

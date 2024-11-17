@@ -13,6 +13,8 @@ import {
 } from "../../../../../backend/src/controllers/auth.schemas";
 import { signUp } from "@/lib/auth";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const Page = () => {
   const [errors, setErrors] = useState<Partial<RegisterInput>>({});
@@ -23,6 +25,8 @@ const Page = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState("");
+
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,7 +42,10 @@ const Page = () => {
       console.log("Usuario registrado:", response);
 
       // Aquí se puede redirigir al usuario
-      // router.push('/dashboard');
+
+      toast.success("Registro exitoso");
+
+      router.push(`/verifyEmail?email=${encodeURIComponent(formData.email)}`);
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Convertir errores de Zod a nuestro formato
