@@ -24,16 +24,32 @@ import {
   resetPasswordSchema,
   verificationCodeSchema,
 } from "./auth.schemas";
+import { CustomError } from "../utils/customError";
 
 export const registerHandler = catchErrors(async (req, res) => {
+  console.log("Intentando registrar usuario:", req.body.email);
   const request = registerSchema.parse({
     ...req.body,
     userAgent: req.headers["user-agent"],
   });
-  const { user, accessToken, refreshToken } = await createAccount(request);
-  return setAuthCookies({ res, accessToken, refreshToken })
-    .status(CREATED)
-    .json(user);
+
+  try {
+    const { user, accessToken, refreshToken } = await createAccount(request);
+    console.log("Usuario creado exitosamente:", user.email);
+    return setAuthCookies({ res, accessToken, refreshToken })
+      .status(CREATED)
+      .json(user);
+  } catch (error) {
+    if (error instanceof CustomError && error.code === "USER_ALREADY_EXISTS") {
+      return res.status(409).json({
+        error: true,
+        message:
+          error.message || "El usuario ya existe. Por favor, inicie sesión.",
+      });
+    }
+    // Re-lanzar otros errores para que sean manejados por catchErrors
+    throw error;
+  }
 });
 
 export const loginHandler = catchErrors(async (req, res) => {

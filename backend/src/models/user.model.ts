@@ -1,5 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { MongooseError } from "mongoose";
 import { compareValue, hashValue } from "../utils/bcrypt";
+import { MongoError } from "mongodb";
 
 export interface UserDocument extends mongoose.Document {
   email: string;
@@ -44,6 +45,15 @@ userSchema.methods.omitPassword = function () {
   delete user.password;
   return user;
 };
+
+userSchema.post("save", function (error: any, doc: any, next: Function) {
+  if (error.code === 11000) {
+    const duplicatedField = Object.keys(error.keyPattern || {})[0] || "campo";
+    next(new Error(`El ${duplicatedField} ya está registrado`));
+  } else {
+    next(error);
+  }
+});
 
 const UserModel = mongoose.model<UserDocument>("User", userSchema);
 export default UserModel;

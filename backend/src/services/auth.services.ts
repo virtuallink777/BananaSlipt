@@ -33,6 +33,7 @@ import {
 } from "../utils/emailTemplates";
 import { transport } from "../config/nodemailer";
 import { hashValue } from "../utils/bcrypt";
+import { CustomError } from "../utils/customError";
 
 export type createAccountparams = {
   email: string;
@@ -45,19 +46,6 @@ export type createAccountparams = {
 
 export const createAccount = async (data: createAccountparams) => {
   try {
-    // verify existing user doesnt exist
-
-    const existingUser = await UserModel.exists({ email: data.email });
-
-    appAssert(!existingUser, CONFLICT, "El usuario ya existe");
-
-    if (existingUser) {
-      return {
-        error: true,
-        message: "El usuario ya existe",
-      };
-    }
-
     // create user
 
     const user = await UserModel.create({
@@ -110,11 +98,13 @@ export const createAccount = async (data: createAccountparams) => {
       refreshToken,
     };
   } catch (error) {
-    // En caso de que ocurra un error inesperado
-    return {
-      error: true,
-      message: "Error en la creación de la cuenta",
-    };
+    if (
+      error instanceof Error &&
+      error.message.includes("ya está registrado")
+    ) {
+      throw new CustomError("USER_ALREADY_EXISTS", error.message);
+    }
+    throw error;
   }
 };
 
