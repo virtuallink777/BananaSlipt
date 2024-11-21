@@ -2,6 +2,8 @@ import axios, { AxiosResponse } from "axios";
 import {
   RegisterInput,
   registerSchema,
+  LoginInput,
+  loginSchema,
 } from "../../../backend/src/controllers/auth.schemas";
 import { z } from "zod";
 
@@ -23,6 +25,29 @@ export const signUp = async (
       "http://localhost:4004/auth/register",
       data
     );
+    console.log(response.data);
+    return response;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // maneja los errores de validacion de zod
+      throw error;
+    }
+    throw error;
+  }
+};
+
+export const login = async (
+  data: LoginInput
+): Promise<AxiosResponse<RegisterResponse>> => {
+  try {
+    // validar los datos con zod
+
+    loginSchema.parse(data);
+
+    console.log(loginSchema.parse(data));
+
+    // enviar los datos al backend
+    const response = await axios.post("http://localhost:4004/auth/login", data);
     console.log(response.data);
     return response;
   } catch (error) {

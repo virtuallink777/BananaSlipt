@@ -5,9 +5,53 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { LoginInput } from "../../../../../backend/src/controllers/auth.schemas";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { login } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 const Loginpage = () => {
-  const handleLogin = () => {};
+  const [errors, setErrors] = useState<Partial<LoginInput>>({});
+  const [formData, setFormData] = useState<LoginInput>({
+    email: "",
+    password: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | JSX.Element>("");
+
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrors({});
+    setServerError("");
+
+    try {
+      setIsLoading(true);
+      const response = await login(formData);
+      console.log(response);
+      if (response.status === 200) {
+        router.push("/controlPanel");
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        setServerError(
+          <p className="text-sm text-red-500 text-center">
+            El correo{" "}
+            <span className="text-blue-500 text-xl">{formData.email}</span> o la
+            contraseña estan incorrectas, intentalo nuevamente
+          </p>
+        );
+      } else {
+        setServerError(
+          error instanceof Error ? error.message : "Error en el registro"
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -28,18 +72,54 @@ const Loginpage = () => {
             </Link>
           </div>
 
+          {serverError && (
+            <p className="text-sm text-red-500 text-center">{serverError}</p>
+          )}
+
           <form onSubmit={handleLogin} className="grid gap-6">
             <div className="grid gap-2">
               <div className="grid gap-1 py-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Email" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                />
               </div>
               <div className="grid gap-1 py-2">
                 <Label htmlFor="password">Contraseña</Label>
-                <Input placeholder="Contraseña" id="password" type="password" />
+                <Input
+                  placeholder="Contraseña"
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      password: e.target.value,
+                    }))
+                  }
+                  className={cn(
+                    "border border-gray-400 rounded-md",
+                    errors.password && "border-red-500"
+                  )}
+                />
+
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password}</p>
+                )}
               </div>
 
-              <Button>Logueate</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Logueandose..." : "Logueate"}
+              </Button>
             </div>
           </form>
         </div>
