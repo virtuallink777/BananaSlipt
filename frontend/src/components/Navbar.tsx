@@ -4,9 +4,14 @@ import MaxWidthWrapper from "./MaxWidthWrapper";
 import { Icons } from "./Icons";
 import { NavItems } from "./NavItems";
 import { buttonVariants } from "./ui/button";
+import UserAccountNav from "./UserAccountNav";
+import { cookies } from "next/headers";
+import { getServerSideUser } from "@/lib/serverSideUser";
 
-export const Navbar = () => {
-  const user = null;
+export const Navbar = async () => {
+  const nextCookies = cookies();
+  const { user } = await getServerSideUser(nextCookies);
+  console.log("Usuario desde Navbar:", user);
 
   return (
     <div className="bg-white sticky z-50 top-0 inset-x-0 h-16">
@@ -42,7 +47,7 @@ export const Navbar = () => {
                   )}
 
                   {user ? (
-                    <p></p>
+                    <UserAccountNav user={user} />
                   ) : (
                     <Link
                       href={"/sign-up"}

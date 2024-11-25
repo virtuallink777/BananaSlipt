@@ -8,6 +8,7 @@ export const loginSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   userAgent: z.string().optional(),
+  verfied: z.boolean().optional(),
 });
 
 export const registerSchema = loginSchema

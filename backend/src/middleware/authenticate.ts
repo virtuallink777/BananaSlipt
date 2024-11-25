@@ -23,6 +23,7 @@ const authenticate: RequestHandler = (req, res, next) => {
   ) {
     req.userId = new Types.ObjectId(payload.userId);
     req.sessionId = new Types.ObjectId(payload.sessionId);
+
     next();
   } else {
     throw new Error("Invalid payload format");

@@ -12,6 +12,7 @@ export type RefreshTokenPayload = {
 export type AccessTokenPayload = {
   sessionId: SessionDocument["_id"];
   userId: UserDocument["_id"];
+  email: UserDocument["email"];
 };
 
 type SignOptionsAndSecret = SignOptions & {
@@ -27,7 +28,7 @@ const defaults: SignOptions = {
   audience: ["user"],
 };
 
-const accessTokenSignOptions: SignOptionsAndSecret = {
+export const accessTokenSignOptions: SignOptionsAndSecret = {
   expiresIn: "15m",
   secret: JWT_SECRET,
 };
@@ -44,7 +45,12 @@ export const signToken = (
   const { secret, ...signOpts } = options || accessTokenSignOptions;
 
   // Convertir ObjectId a string para el token
+
+  console.log("Payload original:", payload);
+
   const stringPayload = JSON.parse(JSON.stringify(payload));
+
+  console.log("Payload serializado:", stringPayload);
 
   return jwt.sign(stringPayload, secret, {
     ...defaults,

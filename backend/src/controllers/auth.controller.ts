@@ -24,7 +24,8 @@ import {
   resetPasswordSchema,
   verificationCodeSchema,
 } from "./auth.schemas";
-import { CustomError } from "../utils/customError";
+import { CustomError, EmailNotVerifiedError } from "../utils/customError";
+import { z } from "zod";
 
 export const registerHandler = catchErrors(async (req, res) => {
   console.log("Intentando registrar usuario:", req.body.email);
@@ -53,16 +54,41 @@ export const registerHandler = catchErrors(async (req, res) => {
 });
 
 export const loginHandler = catchErrors(async (req, res) => {
-  const request = loginSchema.parse({
-    ...req.body,
-    userAgent: req.headers["user-agent"],
-  });
-  const { accessToken, refreshToken } = await loginUser(request);
+  try {
+    // Validar los datos de entrada con zod
+    const request = loginSchema.parse({
+      ...req.body,
+      userAgent: req.headers["user-agent"],
+    });
 
-  // set cookies
-  return setAuthCookies({ res, accessToken, refreshToken })
-    .status(OK)
-    .json({ message: "Login successful" });
+    // Llamar al servicio de login
+    const { accessToken, refreshToken } = await loginUser(request);
+
+    // Establecer cookies y devolver una respuesta exitosa
+    return setAuthCookies({ res, accessToken, refreshToken })
+      .status(OK)
+      .json({ message: "Login successful" });
+  } catch (error) {
+    // Manejar error de correo no verificado
+    if (error instanceof EmailNotVerifiedError) {
+      return res.status(403).json({
+        error: true,
+        message: error.message,
+      });
+    }
+
+    // Manejar errores de validación del esquema zod
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: true,
+        message: "Datos de entrada inválidos",
+        details: error.errors, // Detalles del esquema fallido
+      });
+    }
+
+    // Propagar otros errores para el manejo global
+    throw error;
+  }
 });
 
 export const logoutHandler = catchErrors(async (req, res) => {

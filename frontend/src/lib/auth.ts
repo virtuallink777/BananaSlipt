@@ -6,6 +6,7 @@ import {
   loginSchema,
 } from "../../../backend/src/controllers/auth.schemas";
 import { z } from "zod";
+import { toast } from "react-toastify";
 
 interface RegisterResponse {
   user: string;
@@ -46,15 +47,55 @@ export const login = async (
 
     console.log(loginSchema.parse(data));
 
-    // enviar los datos al backend
-    const response = await axios.post("http://localhost:4004/auth/login", data);
-    console.log(response.data);
-    return response;
+    if (data.verfied === false) {
+      throw new Error(
+        "El correo no ha sido verificado, por favor ve a tu correo y has click en el link de verificacion"
+      );
+    } else {
+      // enviar los datos al backend
+      const response = await axios.post(
+        "http://localhost:4004/auth/login",
+        data,
+        {
+          withCredentials: true, // Esta es la línea clave para manejar cookies
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response.data);
+      return response;
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       // maneja los errores de validacion de zod
       throw error;
     }
+    throw error;
+  }
+};
+
+export const logout = async () => {
+  try {
+    const response = await axios.post(
+      "http://localhost:4004/auth/logout", // Verifica que esta URL sea correcta
+      {},
+      {
+        withCredentials: true, // Asegúrate de que las cookies se envíen correctamente
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log(response.data); // Verifica que la respuesta sea la esperada
+
+    if (!response.data) throw new Error("No se pudo cerrar la sesión");
+
+    toast.success("Sesión cerrada");
+    return response;
+  } catch (error) {
+    console.error("Error durante el logout:", error); // Registra el error en la consola
+    toast.error("No se pudo cerrar la sesión");
     throw error;
   }
 };

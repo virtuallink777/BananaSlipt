@@ -1,5 +1,6 @@
 import { APP_ORIGIN, JWT_REFRESH_SECRET, JWT_SECRET } from "../constans/env";
 import {
+  BAD_REQUEST,
   CONFLICT,
   INTERNAL_SERVER_ERROR,
   NOT_FOUND,
@@ -20,6 +21,8 @@ import {
 } from "../utils/date";
 import jwt from "jsonwebtoken";
 import {
+  AccessTokenPayload,
+  accessTokenSignOptions,
   RefreshTokenPayload,
   refreshTokenSignOptions,
   signToken,
@@ -33,7 +36,7 @@ import {
 } from "../utils/emailTemplates";
 import { transport } from "../config/nodemailer";
 import { hashValue } from "../utils/bcrypt";
-import { CustomError } from "../utils/customError";
+import { CustomError, EmailNotVerifiedError } from "../utils/customError";
 
 export type createAccountparams = {
   email: string;
@@ -52,6 +55,8 @@ export const createAccount = async (data: createAccountparams) => {
       email: data.email,
       password: data.password,
     });
+
+    console.log("Usuario creado:", user);
 
     // create verification code
 
@@ -79,13 +84,31 @@ export const createAccount = async (data: createAccountparams) => {
 
     // sign access token & refresh token
 
+    // Validar datos antes de firmar tokens
+    console.log("Datos para payload:", {
+      userId: user._id,
+      email: user.email,
+      sessionId: session._id,
+    });
+
     const sessionInfo = {
       sessionId: session._id,
+      email: user.email,
     };
 
-    const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
+    const refreshToken = signToken(
+      { sessionId: session._id }, // payload
+      refreshTokenSignOptions // opciones
+    );
 
-    const accessToken = signToken({ ...sessionInfo, userId });
+    const accessToken = signToken(
+      {
+        userId: user._id,
+        email: user.email,
+        sessionId: session._id,
+      }, // payload
+      accessTokenSignOptions // opciones
+    );
 
     console.log("Tokens creados:", { accessToken, refreshToken });
 
@@ -121,10 +144,25 @@ export const loginUser = async ({
   password,
   userAgent,
 }: LoginParams) => {
+  // Validar parámetros básicos
+  appAssert(
+    email && password,
+    BAD_REQUEST,
+    "Email y contraseña son obligatorios"
+  );
+
+  // Normalizar el email
+  const normalizedEmail = email.trim().toLowerCase();
+
   // get user by email
 
-  const user = await UserModel.findOne({ email });
+  const user = await UserModel.findOne({ email: normalizedEmail });
   appAssert(user, UNAUTHORIZED, "Credenciales incorrectas");
+
+  // Verificar si el email está verificado
+  if (!user.verified) {
+    throw new EmailNotVerifiedError();
+  }
 
   // validate password from the request
 
@@ -144,6 +182,7 @@ export const loginUser = async ({
   const sessionInfo = {
     sessionId: session._id,
   };
+
   // sign access token & refresh token
 
   const refreshToken = jwt.sign({ sessionInfo }, JWT_REFRESH_SECRET, {
@@ -151,7 +190,7 @@ export const loginUser = async ({
     expiresIn: "30d",
   });
   const accessToken = jwt.sign(
-    { userId: user._id, ...sessionInfo },
+    { userId: user._id, ...sessionInfo, email: user.email },
     JWT_SECRET,
     {
       audience: ["user"],
@@ -185,6 +224,10 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
     UNAUTHORIZED,
     "Session expired"
   );
+
+  // Obtener el usuario para tener acceso al email
+  const user = await UserModel.findById(session.userId);
+  appAssert(user, UNAUTHORIZED, "User not found");
 
   // Agregamos logs para debugging
   console.log("Tiempos de sesión:", {
@@ -226,7 +269,7 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
     ? signToken(
         {
           sessionId: session._id,
-        },
+        } as RefreshTokenPayload,
         refreshTokenSignOptions
       )
     : undefined;
@@ -234,7 +277,8 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
   const accessToken = signToken({
     userId: session.userId,
     sessionId: session._id,
-  });
+    email: user.email,
+  } as AccessTokenPayload);
 
   return {
     accessToken,

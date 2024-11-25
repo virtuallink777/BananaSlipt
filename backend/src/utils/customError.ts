@@ -4,3 +4,9 @@ export class CustomError extends Error {
     this.name = "CustomError";
   }
 }
+
+export class EmailNotVerifiedError extends CustomError {
+  constructor(message = "Por favor verifica tu email antes de iniciar sesión") {
+    super("EMAIL_NOT_VERIFIED", message);
+  }
+}

@@ -10,8 +10,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { isAxiosError } from "axios";
 
-const Loginpage = () => {
+const LoginPage = () => {
   const [errors, setErrors] = useState<Partial<LoginInput>>({});
   const [formData, setFormData] = useState<LoginInput>({
     email: "",
@@ -34,18 +35,41 @@ const Loginpage = () => {
       if (response.status === 200) {
         router.push("/controlPanel");
       }
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        setServerError(
-          <p className="text-sm text-red-500 text-center">
-            El correo{" "}
-            <span className="text-blue-500 text-xl">{formData.email}</span> o la
-            contraseña estan incorrectas, intentalo nuevamente
-          </p>
-        );
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        const status = error.response?.status;
+        switch (status) {
+          case 401:
+            setServerError(
+              <p className="text-sm text-red-500 text-center">
+                El correo{" "}
+                <span className="text-blue-500 text-xl">{formData.email}</span>{" "}
+                o la contraseña estan incorrectas, intentalo nuevamente
+              </p>
+            );
+            break;
+          case 403:
+            setServerError(
+              <p className="text-sm text-red-500 text-center">
+                El correo{" "}
+                <span className="text-blue-500 text-xl">{formData.email}</span>{" "}
+                no ha sido verificado, por favor ingresa a tu correo y haz click
+                en el link de verificacion
+              </p>
+            );
+            break;
+          default:
+            setServerError(
+              <div className="text-sm text-red-500 text-center">
+                Algo salió mal. Por favor intenta nuevamente.
+              </div>
+            );
+        }
       } else {
         setServerError(
-          error instanceof Error ? error.message : "Error en el registro"
+          <div className="text-sm text-red-500 text-center">
+            Error de conexión. Por favor intenta más tarde.
+          </div>
         );
       }
     } finally {
@@ -73,7 +97,9 @@ const Loginpage = () => {
           </div>
 
           {serverError && (
-            <p className="text-sm text-red-500 text-center">{serverError}</p>
+            <div className="text-sm text-red-500 text-center">
+              {serverError}{" "}
+            </div>
           )}
 
           <form onSubmit={handleLogin} className="grid gap-6">
@@ -153,4 +179,4 @@ const Loginpage = () => {
   );
 };
 
-export default Loginpage;
+export default LoginPage;
