@@ -11,9 +11,22 @@ import {
 import { Button } from "./ui/button";
 import { User } from "../lib/serverSideUser";
 import { logout } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 const UserAccountNav = ({ user }: { user: User }) => {
-  const handleLogout = () => logout();
+  const router = useRouter();
+
+  const handleLogOut = async () => {
+    try {
+      await logout();
+      router.push("/sign-in");
+      router.refresh();
+    } catch (error) {
+      // Manejo de errores si es necesario
+      console.error("Error en logout", error);
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="overflow-visible">
@@ -30,7 +43,7 @@ const UserAccountNav = ({ user }: { user: User }) => {
         </div>
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+        <DropdownMenuItem className="cursor-pointer" onClick={handleLogOut}>
           Deslogueate
         </DropdownMenuItem>
       </DropdownMenuContent>

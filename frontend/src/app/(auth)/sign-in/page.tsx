@@ -34,6 +34,7 @@ const LoginPage = () => {
       console.log(response);
       if (response.status === 200) {
         router.push("/controlPanel");
+        router.refresh();
       }
     } catch (error: unknown) {
       if (isAxiosError(error)) {

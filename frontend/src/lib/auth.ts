@@ -77,24 +77,22 @@ export const login = async (
 
 export const logout = async () => {
   try {
-    const response = await axios.post(
-      "http://localhost:4004/auth/logout", // Verifica que esta URL sea correcta
-      {},
+    const response = await axios.get(
+      // Cambiar POST a GET
+      "http://localhost:4004/auth/logout",
       {
-        withCredentials: true, // Asegúrate de que las cookies se envíen correctamente
+        withCredentials: true,
         headers: {
           "Content-Type": "application/json",
         },
       }
     );
-    console.log(response.data); // Verifica que la respuesta sea la esperada
 
-    if (!response.data) throw new Error("No se pudo cerrar la sesión");
-
+    console.log(response.data);
     toast.success("Sesión cerrada");
     return response;
   } catch (error) {
-    console.error("Error durante el logout:", error); // Registra el error en la consola
+    console.error("Error durante el logout:", error);
     toast.error("No se pudo cerrar la sesión");
     throw error;
   }
