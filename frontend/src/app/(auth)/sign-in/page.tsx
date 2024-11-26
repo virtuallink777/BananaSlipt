@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { LoginInput } from "../../../../../backend/src/controllers/auth.schemas";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/auth";
+import { forgotPassword, login } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { isAxiosError } from "axios";
 
@@ -75,6 +75,35 @@ const LoginPage = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // logica para restear la contraseña
+
+  const [email, setEmail] = useState("");
+  const [isLoadingReset, setIsLoadingReset] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoadingReset(true);
+    setMessage("");
+    setError("");
+
+    try {
+      // Aquí llamarás a tu función de API para solicitar restablecimiento
+
+      const response = await forgotPassword(email);
+      setMessage(response.data.message);
+
+      setMessage("Se han enviado instrucciones a tu correo electrónico");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setIsLoadingReset(false);
     }
   };
 
@@ -162,16 +191,37 @@ const LoginPage = () => {
             restablecer tu contraseña.
           </p>
           <div className="flex flex-col items-center space-y-2 w-full">
-            <form className="flex flex-col items-center space-y-4 w-full">
-              <input
+            <form
+              className="flex flex-col items-center space-y-4 w-full"
+              onSubmit={handleForgotPassword}
+            >
+              <Input
+                type="email"
                 placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="p-2 border rounded-md w-full"
               />
 
-              <Button type="submit" className="w-full p-2">
-                Enviar indicaciones al email
+              <Button
+                type="submit"
+                className="w-full p-2"
+                disabled={isLoadingReset}
+              >
+                {isLoadingReset
+                  ? "Enviando..."
+                  : "Enviar indicaciones al email"}
               </Button>
             </form>
+            {message && (
+              <p className="text-sm text-green-500 text-center mt-2">
+                {message}
+              </p>
+            )}
+            {error && (
+              <p className="text-sm text-red-500 text-center mt-2">{error}</p>
+            )}
             <div className="flex justify-center mt-4"></div>
           </div>
         </div>

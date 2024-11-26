@@ -97,3 +97,31 @@ export const logout = async () => {
     throw error;
   }
 };
+
+export const forgotPassword = async (email: string) => {
+  try {
+    const response = await axios.post(
+      "http://localhost:4004/auth/password/forgot",
+      {
+        email,
+      },
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        throw new Error(
+          error.response.data.message || "Error al enviar solicitud"
+        );
+      }
+      throw new Error("Error de conexión");
+    }
+    throw error;
+  }
+};
